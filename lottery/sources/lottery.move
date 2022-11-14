@@ -40,6 +40,10 @@ module geomel::lottery{
         });
     }
 
+    // returns current Lottery balance
+    public fun getBalance(self: &Lottery): u64{
+        balance::value<SUI>(&self.lottery_balance)
+    }
 
 
 
