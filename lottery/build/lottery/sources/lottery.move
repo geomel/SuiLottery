@@ -16,18 +16,21 @@ module geomel::lottery{
     // not lottery owner
     const ENotLotterryOwner: u64 = 3;
 
-
+    // The Lottery object
     struct Lottery has key, store{
         id: UID,
         lottery_balance: Balance<SUI>
 
     }
 
+    // The ownership capability of the Lottery
     struct LotteryOwnership has key, store{
         id: UID
     }
 
-    // Initialize the lottery and transfer ownership
+    /// Initialize the lottery 
+    /// Assign ownership to the lottery creator
+    /// Make Lottery object shared
     fun init(ctx: &mut TxContext){
         transfer::transfer(LotteryOwnership{id: object::new(ctx)}, tx_context::sender(ctx));
 
@@ -36,6 +39,12 @@ module geomel::lottery{
             lottery_balance: balance::zero()
         });
     }
+
+    // returns current Lottery balance
+    public fun getBalance(self: &Lottery): u64{
+        balance::value<SUI>(&self.lottery_balance)
+    }
+
 
 
 }
