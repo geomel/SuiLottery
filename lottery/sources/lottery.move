@@ -21,5 +21,10 @@ module geomel:lottery{
         id: UID
     }
 
-    
+    // Initialize the lottery
+    fun init(ctx: &mut TxConttext){
+        transfer::transfer(LotteryOwnership{id: object::new(ctx)}, tx_context::sender(ctx));
+    }
+
+
 }
