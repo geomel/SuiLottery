@@ -21,8 +21,8 @@ module geomel::lottery{
     // The Lottery object
     struct Lottery has key, store{
         id: UID,
-        ticket_price: 1,
-        minimun_players: 3,
+        ticket_price: u64,
+        minimun_players: u64,
         lottery_balance: Balance<SUI>,
     }
 
@@ -32,24 +32,28 @@ module geomel::lottery{
     }
 
     /// Initialize the lottery 
-    /// Assign ownership to the lottery creator
-    /// Make Lottery object shared
     fun init(ctx: &mut TxContext){
 
-        let lotteryOwnerCap = LotteryOwnerCap{
-            id: object::new(ctx);
-        }
-        transfer::transfer(lotteryOwnerCap, tx_context::sender(ctx));
-
-        let lottery = Lottery{
+        /// Initialize a Lottery object
+        /// Make Lottery's object shared
+        transfer::share_object(Lottery {
             id: object::new(ctx),
+            ticket_price: 1,
+            minimun_players: 3,
             lottery_balance: balance::zero()
-        }
+        });
+
+         // Assign ownership to the lottery creator
+        transfer::transfer(
+            LotterOwnerCap{id: object::new(ctx)}, 
+            tx_context::sender(ctx)
+        );
+         
         transfer::share_object(lottery);
     }
 
-    // returns current Lottery balance
-    public fun getBalance(self: &Lottery): u64{
+    // returns Lottery'ss balance
+    public fun getBalance(_: &LotteryOwnerCap, self: &Lottery): u64{
         balance::value<SUI>(&self.lottery_balance)
     }
 
@@ -68,17 +72,19 @@ module geomel::lottery{
           // Get players wallet balance
         let wallet_balance = coin::balance_mut(player_wallet);
 
-        // Checks if players has minimum the amount to pay 
+        // Checks if players has the minimum amount to pay 
         assert!(coin::value(wallet_balance)>=lottery.getTicketPrice, EHasMinimumAmountToPlay);
-
+        
         // if user has submitted the correct price to purchase ticket
-        assert!(coin::value(wallet)==lottery.getTicketPrice, EIncorrectTicketPrice);
+       // assert!(coin::value(wallet)==lottery.getTicketPrice, EIncorrectTicketPrice);
+
+
 
         
         balance::join(&mut lottery.lottery_balance, )
 
-
     }
+
 
 
 }
