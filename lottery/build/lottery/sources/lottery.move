@@ -34,6 +34,11 @@ module geomel::lottery{
         id: UID
     }
 
+    struct Players has key{
+        id: UID,
+        player_id: ID
+    }
+
     struct WinnerEvent has copy, drop{
         id: ID,
         amount: u64,
@@ -61,7 +66,7 @@ module geomel::lottery{
     }
 
     // returns Lottery'ss balance
-    public fun getBalance(_: &LotteryOwnerCap, self: &Lottery): u64{
+    public fun getBalance(self: &Lottery): u64{
         balance::value<SUI>(&self.lottery_balance)
     }
 
@@ -91,9 +96,29 @@ module geomel::lottery{
         // add ticket_payment amount to lottery's balance
         balance::join(&mut lottery.lottery_balance,ticket_payment);
 
+        // Create a new player Struct
+       // let id = object::new(ctx);
+       // let player_id = object::uid_to_inner(&id);
+
+      //  let player = Player{id, player_id};
+
+        // Increment total players count
         let total_players = lottery.registered_players;
         lottery.registered_players = total_players + 1;
 
+    }
+
+    public entry fun pickWinner(_: &LotteryOwnerCap, lottery: &mut Lottery, wallet: &mut Coin<SUI>){
+
+        assert!(lottery.registered_players >=3, ENotEnoughPlayers);
+
+         let lot_balance = getBalance(lottery);
+
+         let user_balance = coin::balance_mut(wallet);
+
+         let profits = balance::split(&mut lottery.lottery_balance, lot_balance);
+
+         balance::join(user_balance, profits);
     }
 
 
