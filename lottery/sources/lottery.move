@@ -1,10 +1,12 @@
 module geomel::lottery{
 
-    use sui::object::{Self, UID};
+    use sui::object::{Self, ID, UID};
     use sui::transfer;
     use sui::sui::SUI;
     use sui::balance::{Self, Balance};
     use sui::tx_context::{Self, TxContext};
+
+    use sui::coin::{Self, Coin};
 
     // User doesn't hold the minimum amount to play
     const ENotEnoughMoneyToPlay: u64 = 1;
@@ -26,7 +28,6 @@ module geomel::lottery{
         lottery_balance: Balance<SUI>,
     }
 
-
     // The ownership capability of the Lottery
     struct LotteryOwnerCap has key, store{
         id: UID
@@ -41,8 +42,8 @@ module geomel::lottery{
     /// Initialize the lottery 
     fun init(ctx: &mut TxContext){
 
-        /// Initialize a Lottery object
-        /// Make Lottery's object shared
+        // Initialize a Lottery object
+        // Make Lottery's object shared
         transfer::share_object(Lottery {
             id: object::new(ctx),
             ticket_price: 1,
@@ -52,11 +53,9 @@ module geomel::lottery{
 
          // Assign ownership to the lottery creator
         transfer::transfer(
-            LotterOwnerCap{id: object::new(ctx)}, 
+            LotteryOwnerCap{id: object::new(ctx)}, 
             tx_context::sender(ctx)
         );
-         
-        transfer::share_object(lottery);
     }
 
     // returns Lottery'ss balance
@@ -66,29 +65,29 @@ module geomel::lottery{
 
        // returns Lotterys ticket price
     public fun getTicketPrice(self: &Lottery): u64{
-       self::ticket_price
+       self.ticket_price
     }
 
     public fun getMinimumPlayers(self: &Lottery): u64{
-        self::minimun_players
+        self.minimun_players
     }
 
-    // Entry function for users to register the Lottery 
+    // Entry function for users to register to the Lottery 
     public entry fun playLottery(lottery: &mut Lottery, player_wallet: &mut Coin<SUI>, ctx: &mut TxContext){
 
-          // Get players wallet balance
-        let wallet_balance = coin::balance_mut(player_wallet);
-
         // Checks if players has the minimum amount to pay 
-        assert!(coin::value(wallet_balance)>=lottery.getTicketPrice, ENotEnoughMoneyToPlay);
+        assert!(coin::value(player_wallet) >= lottery.ticket_price, ENotEnoughMoneyToPlay);
+
+         // Get players wallet balance
+        let wallet_balance = coin::balance_mut(player_wallet);
 
         // if user has submitted the correct price to purchase ticket
        // assert!(coin::value(wallet)==lottery.getTicketPrice, EIncorrectTicketPrice);
-
-
-
         
-        balance::join(&mut lottery.lottery_balance, )
+        let ticket_payment = balance::split(wallet_balance, lottery.ticket_price);
+
+        // add ticket_payment amount to lottery's balance
+        balance::join(&mut lottery.lottery_balance,ticket_payment);
 
     }
 
