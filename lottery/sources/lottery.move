@@ -6,8 +6,8 @@ module geomel::lottery{
     use sui::balance::{Self, Balance};
     use sui::tx_context::{Self, TxContext};
 
-    // User holds the minimum amount to play
-    const EHasMinimumAmountToPlay: u64 = 1;
+    // User doesn't hold the minimum amount to play
+    const ENotEnoughMoneyToPlay: u64 = 1;
 
     // user did not provide the correct amount of ticket price
     const EIncorrectTicketPrice: u64 = 2;
@@ -26,9 +26,16 @@ module geomel::lottery{
         lottery_balance: Balance<SUI>,
     }
 
+
     // The ownership capability of the Lottery
     struct LotteryOwnerCap has key, store{
         id: UID
+    }
+
+    struct WinnerEvent has copy, drop{
+        id: ID,
+        amount: u64,
+        winner: address
     }
 
     /// Initialize the lottery 
@@ -73,8 +80,8 @@ module geomel::lottery{
         let wallet_balance = coin::balance_mut(player_wallet);
 
         // Checks if players has the minimum amount to pay 
-        assert!(coin::value(wallet_balance)>=lottery.getTicketPrice, EHasMinimumAmountToPlay);
-        
+        assert!(coin::value(wallet_balance)>=lottery.getTicketPrice, ENotEnoughMoneyToPlay);
+
         // if user has submitted the correct price to purchase ticket
        // assert!(coin::value(wallet)==lottery.getTicketPrice, EIncorrectTicketPrice);
 
