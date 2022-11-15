@@ -27,7 +27,7 @@ module geomel::lottery{
     }
 
     // The ownership capability of the Lottery
-    struct LotteryOwnership has key, store{
+    struct LotteryOwnerCap has key, store{
         id: UID
     }
 
@@ -35,12 +35,17 @@ module geomel::lottery{
     /// Assign ownership to the lottery creator
     /// Make Lottery object shared
     fun init(ctx: &mut TxContext){
-        transfer::transfer(LotteryOwnership{id: object::new(ctx)}, tx_context::sender(ctx));
 
-        transfer::share_object(Lottery {
+        let lotteryOwnerCap = LotteryOwnerCap{
+            id: object::new(ctx);
+        }
+        transfer::transfer(lotteryOwnerCap, tx_context::sender(ctx));
+
+        let lottery = Lottery{
             id: object::new(ctx),
             lottery_balance: balance::zero()
-        });
+        }
+        transfer::share_object(lottery);
     }
 
     // returns current Lottery balance
@@ -70,8 +75,6 @@ module geomel::lottery{
         assert!(coin::value(wallet)==lottery.getTicketPrice, EIncorrectTicketPrice);
 
         
-        
-
         balance::join(&mut lottery.lottery_balance, )
 
 
