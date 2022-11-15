@@ -34,6 +34,11 @@ module geomel::lottery{
         id: UID
     }
 
+    struct Players has key{
+        id: UID,
+        player_id: ID
+    }
+
     struct WinnerEvent has copy, drop{
         id: ID,
         amount: u64,
@@ -75,7 +80,7 @@ module geomel::lottery{
     }
 
     // Entry function for users to register to the Lottery 
-    public entry fun playLottery(lottery: &mut Lottery, player_wallet: &mut Coin<SUI>, _ctx: &mut TxContext){
+    public entry fun playLottery(lottery: &mut Lottery, player_wallet: &mut Coin<SUI>, ctx: &mut TxContext){
 
         // Checks if players has the minimum amount to pay 
         assert!(coin::value(player_wallet) >= lottery.ticket_price, ENotEnoughMoneyToPlay);
@@ -91,12 +96,23 @@ module geomel::lottery{
         // add ticket_payment amount to lottery's balance
         balance::join(&mut lottery.lottery_balance,ticket_payment);
 
+        // Create a new player Struct
+        let id = object::new(ctx);
+        let player_id = object::uid_to_inner(&id);
+
+        let player = Player{id, player_id};
+
+        // Increment total players count
         let total_players = lottery.registered_players;
         lottery.registered_players = total_players + 1;
 
     }
 
-    
+    public entry fun pickWinner(_: &LotteryOwnerCap, lottery: &mut Lottery){
+
+        assert!(lottery.minimun_players>=3, ENotEnoughPlayers);
+
+    }
 
 
 
