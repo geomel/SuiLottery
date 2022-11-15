@@ -25,9 +25,9 @@ module geomel::lottery{
         id: UID,
         ticket_price: u64,
         minimun_players: u64,
+        registered_players: u64,
         lottery_balance: Balance<SUI>,
     }
-
 
     // The ownership capability of the Lottery
     struct LotteryOwnerCap has key, store{
@@ -49,6 +49,7 @@ module geomel::lottery{
             id: object::new(ctx),
             ticket_price: 1,
             minimun_players: 3,
+            registered_players: 0,
             lottery_balance: balance::zero()
         });
 
@@ -74,7 +75,7 @@ module geomel::lottery{
     }
 
     // Entry function for users to register to the Lottery 
-    public entry fun playLottery(lottery: &mut Lottery, player_wallet: &mut Coin<SUI>, ctx: &mut TxContext){
+    public entry fun playLottery(lottery: &mut Lottery, player_wallet: &mut Coin<SUI>, _ctx: &mut TxContext){
 
         // Checks if players has the minimum amount to pay 
         assert!(coin::value(player_wallet) >= lottery.ticket_price, ENotEnoughMoneyToPlay);
@@ -89,6 +90,9 @@ module geomel::lottery{
 
         // add ticket_payment amount to lottery's balance
         balance::join(&mut lottery.lottery_balance,ticket_payment);
+
+        let total_players = lottery.registered_players;
+        lottery.registered_players = total_players + 1;
 
     }
 
